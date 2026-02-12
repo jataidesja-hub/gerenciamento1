@@ -26,9 +26,6 @@
                 <button class="nav-item" data-tab="new-sale">
                     <span class="icon">➕</span> Nova Venda
                 </button>
-                <button class="nav-item" data-tab="settings">
-                    <span class="icon">⚙️</span> Configurações
-                </button>
             </nav>
         </aside>
 
@@ -195,26 +192,6 @@
                 </form>
             </section>
 
-            <!-- Settings Tab -->
-            <section id="settings" class="tab-content">
-                <div class="glass-card">
-                    <h4>Configurações do Sistema</h4>
-                    <p>Configure a URL do seu Google Apps Script abaixo:</p>
-                    <div class="input-group">
-                        <input type="text" id="api-url" placeholder="https://script.google.com/macros/s/.../exec">
-                        <button class="btn btn-primary" onclick="saveSettings()">Salvar URL</button>
-                    </div>
-                    <div class="api-instructions">
-                        <h5>Como obter a URL?</h5>
-                        <ol>
-                            <li>No Google Sheets, vá em extensões > Apps Script</li>
-                            <li>Cole o código fornecido no arquivo <code>backend/code.gs</code></li>
-                            <li>Clique em <strong>Implantar > Nova implantação</strong></li>
-                            <li>Selecione "App da Web", em "Quem pode acessar" coloque "Qualquer pessoa"</li>
-                            <li>Copie a URL gerada e cole acima.</li>
-                        </ol>
-                    </div>
-                </div>
             </section>
         </main>
     </div>

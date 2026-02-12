@@ -2,7 +2,7 @@
 let salesData = [];
 let charts = {};
 let CONFIG = {
-    apiUrl: localStorage.getItem('gerenciamento_api_url') || ''
+    apiUrl: 'https://script.google.com/macros/s/AKfycbxqTVpqoUI2NV5IUWZRaYNQjBX-LetKZ6Tg37SxbZvxlkBUMxNTuTu5_hgVZcO93RIQmA/exec'
 };
 
 // DOM Elements
@@ -18,11 +18,7 @@ const apiUrlInput = document.getElementById('api-url');
 document.addEventListener('DOMContentLoaded', () => {
     initTabs();
     if (CONFIG.apiUrl) {
-        apiUrlInput.value = CONFIG.apiUrl;
         refreshData();
-    } else {
-        showTab('settings');
-        showNotification('Configure a URL da API para começar.', 'info');
     }
 });
 
