@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Agrovale - Gestão de Vendas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <h1>Agro<span>vale</span></h1>
+            </div>
+            <nav>
+                <button class="nav-item active" data-tab="dashboard">
+                    <span class="icon">📊</span> Dashboard
+                </button>
+                <button class="nav-item" data-tab="new-sale">
+                    <span class="icon">➕</span> Nova Venda
+                </button>
+                <button class="nav-item" data-tab="settings">
+                    <span class="icon">⚙️</span> Configurações
+                </button>
+            </nav>
+        </aside>
+
+        <main class="content">
+            <header class="top-bar">
+                <h2 id="tab-title">Dashboard</h2>
+                <div class="user-info">
+                    <span class="status-dot"></span> Online
+                </div>
+            </header>
+
+            <!-- Dashboard Tab -->
+            <section id="dashboard" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Vendas Totais</h3>
+                        <p id="total-sales">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Valor Total</h3>
+                        <p id="total-revenue">R$ 0,00</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Em Aberto</h3>
+                        <p id="pending-sales">0</p>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Vendas Recentes</h3>
+                        <button class="btn btn-secondary" onclick="refreshData()">Atualizar</button>
+                    </div>
+                    <table id="sales-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Status</th>
+                                <th>Data</th>
+                                <th>Valor</th>
+                                <th>Responsável</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales-list">
+                            <!-- Sales will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- New Sale Tab -->
+            <section id="new-sale" class="tab-content">
+                <form id="sale-form" class="glass-form">
+                    <div class="form-section">
+                        <h4>🔹 Identificação da Venda</h4>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="client-name">Nome do Cliente</label>
+                                <input type="text" id="client-name" name="Nome do Cliente" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="client-city">Cidade/UF</label>
+                                <input type="text" id="client-city" name="Cidade/UF">
+                            </div>
+                            <div class="input-group">
+                                <label for="client-phone">Telefone / WhatsApp</label>
+                                <input type="text" id="client-phone" name="Telefone / WhatsApp">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h4>🔹 Informações Comerciais</h4>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="sale-date">Data da Compra</label>
+                                <input type="date" id="sale-date" name="Data da Compra" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="total-value">Valor Total (R$)</label>
+                                <input type="number" step="0.01" id="total-value" name="Valor Total (R$)" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="payment-method">Forma de Pagamento</label>
+                                <select id="payment-method" name="Forma de Pagamento">
+                                    <option value="À vista">À vista</option>
+                                    <option value="Cartão">Cartão</option>
+                                    <option value="Parcelado">Parcelado</option>
+                                    <option value="PIX">PIX</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="installments">Quantidade de Parcelas</label>
+                                <input type="number" id="installments" name="Parcelas" value="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="installment-value">Valor da Parcela (R$)</label>
+                                <input type="number" step="0.01" id="installment-value" name="Valor da Parcela (R$)">
+                            </div>
+                            <div class="input-group">
+                                <label for="payment-status">Status do Pagamento</label>
+                                <select id="payment-status" name="Status do Pagamento">
+                                    <option value="Pago">Pago</option>
+                                    <option value="Em aberto">Em aberto</option>
+                                    <option value="Parcial">Parcial</option>
+                                    <option value="Inadimplente">Inadimplente</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h4>🔹 Controle do Filhote</h4>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="litter">Ninhada</label>
+                                <input type="text" id="litter" name="Ninhada">
+                            </div>
+                            <div class="input-group">
+                                <label for="puppy-sex">Sexo</label>
+                                <select id="puppy-sex" name="Sexo">
+                                    <option value="M">Macho</option>
+                                    <option value="F">Fêmea</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="puppy-color">Cor</label>
+                                <input type="text" id="puppy-color" name="Cor">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h4>🔹 Operacional</h4>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="delivery-date">Data de Entrega</label>
+                                <input type="date" id="delivery-date" name="Data de Entrega">
+                            </div>
+                            <div class="input-group">
+                                <label for="responsible">Responsável pela Venda</label>
+                                <input type="text" id="responsible" name="Responsável">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" onclick="resetForm()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar Venda</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Settings Tab -->
+            <section id="settings" class="tab-content">
+                <div class="glass-card">
+                    <h4>Configurações do Sistema</h4>
+                    <p>Configure a URL do seu Google Apps Script abaixo:</p>
+                    <div class="input-group">
+                        <input type="text" id="api-url" placeholder="https://script.google.com/macros/s/.../exec">
+                        <button class="btn btn-primary" onclick="saveSettings()">Salvar URL</button>
+                    </div>
+                    <div class="api-instructions">
+                        <h5>Como obter a URL?</h5>
+                        <ol>
+                            <li>No Google Sheets, vá em extensões > Apps Script</li>
+                            <li>Cole o código fornecido no arquivo <code>backend/code.gs</code></li>
+                            <li>Clique em <strong>Implantar > Nova implantação</strong></li>
+                            <li>Selecione "App da Web", em "Quem pode acessar" coloque "Qualquer pessoa"</li>
+                            <li>Copie a URL gerada e cole acima.</li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notification" class="notification"></div>
+
+    <script src="main.js"></script>
+</body>
+</html>
