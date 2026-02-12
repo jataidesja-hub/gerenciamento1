@@ -68,12 +68,6 @@ async function refreshData() {
 }
 
 async function saveSale(sale) {
-    if (!CONFIG.apiUrl) {
-        showNotification('Configure a URL da API primeiro!', 'error');
-        showTab('settings');
-        return;
-    }
-
     showNotification('Salvando...', 'info');
     try {
         const response = await fetch(CONFIG.apiUrl, {
@@ -208,16 +202,6 @@ function resetForm() {
     if (rowInput) rowInput.remove();
 }
 
-// Settings
-function saveSettings() {
-    const url = apiUrlInput.value.trim();
-    if (url) {
-        localStorage.setItem('gerenciamento_api_url', url);
-        CONFIG.apiUrl = url;
-        showNotification('Configuração salva!', 'success');
-        refreshData();
-    }
-}
 
 // Utilities
 function showNotification(message, type = 'info') {
