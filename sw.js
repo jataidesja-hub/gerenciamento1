@@ -2,8 +2,8 @@ const CACHE_NAME = 'gerenciamento-v2';
 const ASSETS = [
     '/',
     '/index.html',
-    '/style.css',
-    '/main.js',
+    '/main.css',
+    '/app.js',
     'https://cdn.jsdelivr.net/npm/chart.js'
 ];
 
