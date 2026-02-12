@@ -10,17 +10,17 @@ const SHEET_NAME = 'Vendas';
  * Main GET handler for the API.
  */
 function doGet(e) {
-  const action = e.parameter.action;
-  
   try {
+    const action = e.parameter ? e.parameter.action : null;
+    
     if (action === 'getSales') {
       return jsonResponse(getSales());
     } else if (action === 'setup') {
       return jsonResponse(setupSheet());
     }
-    return jsonResponse({ error: 'Invalid action' }, 400);
+    return jsonResponse({ error: 'Invalid or missing action', parameter: e.parameter }, 400);
   } catch (error) {
-    return jsonResponse({ error: error.toString() }, 500);
+    return jsonResponse({ error: error.toString(), stack: error.stack }, 500);
   }
 }
 
@@ -29,15 +29,19 @@ function doGet(e) {
  */
 function doPost(e) {
   try {
+    if (!e || !e.postData || !e.postData.contents) {
+      return jsonResponse({ error: 'No POST data received' }, 400);
+    }
+    
     const data = JSON.parse(e.postData.contents);
     const action = data.action;
     
     if (action === 'saveSale') {
       return jsonResponse(saveSale(data.sale));
     }
-    return jsonResponse({ error: 'Invalid action' }, 400);
+    return jsonResponse({ error: 'Invalid action', action: action }, 400);
   } catch (error) {
-    return jsonResponse({ error: error.toString() }, 500);
+    return jsonResponse({ error: error.toString(), stack: error.stack }, 500);
   }
 }
 
@@ -106,14 +110,22 @@ function saveSale(sale) {
   }
   
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  const rowData = headers.map(header => sale[header] || '');
+  const rowData = headers.map(header => {
+    let value = sale[header] || '';
+    // Basic numeric conversion for specific fields
+    if (header.includes('(R$)') || header === 'Parcelas') {
+      const num = parseFloat(value.toString().replace(',', '.'));
+      return isNaN(num) ? value : num;
+    }
+    return value;
+  });
   
   if (sale.rowIndex) {
-    sheet.getRange(sale.rowIndex, 1, 1, rowData.length).setValues([rowData]);
+    sheet.getRange(parseInt(sale.rowIndex), 1, 1, rowData.length).setValues([rowData]);
   } else {
     // Generate simple ID if not provided
-    if (!sale['ID da Venda']) {
-      rowData[0] = 'SALE-' + new Date().getTime();
+    if (!rowData[0]) {
+      rowData[0] = 'SALE-' + Math.random().toString(36).substr(2, 9).toUpperCase();
     }
     sheet.appendRow(rowData);
   }

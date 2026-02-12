@@ -1,8 +1,8 @@
 // State Management
 let salesData = [];
+let charts = {};
 let CONFIG = {
-    // URL de implantação fornecida pelo usuário
-    apiUrl: localStorage.getItem('agrovale_api_url') || 'https://script.google.com/macros/library/d/144eIrGSNScm3OfB6Ag7lrPmIMJyHXZBahNnj_d3-eQRhJdZ4hi7g0SzL/1'
+    apiUrl: localStorage.getItem('agrovale_api_url') || ''
 };
 
 // DOM Elements
@@ -43,9 +43,11 @@ function showTab(tabId) {
     const activeTab = document.querySelector(`[data-tab="${tabId}"]`);
     const activeContent = document.getElementById(tabId);
 
-    activeTab.classList.add('active');
-    activeContent.classList.add('active');
-    tabTitle.textContent = activeTab.textContent.trim();
+    if (activeTab && activeContent) {
+        activeTab.classList.add('active');
+        activeContent.classList.add('active');
+        tabTitle.textContent = activeTab.textContent.trim();
+    }
 }
 
 // API Interaction
@@ -59,12 +61,13 @@ async function refreshData() {
 
         if (data.error) throw new Error(data.error);
 
-        salesData = data;
+        salesData = Array.isArray(data) ? data : [];
         renderDashboard();
+        renderCharts();
         showNotification('Dados atualizados!', 'success');
     } catch (error) {
         console.error(error);
-        showNotification('Erro ao carregar dados: ' + error.message, 'error');
+        showNotification('Erro ao carregar dados. Verifique a URL da API.', 'error');
     }
 }
 
@@ -79,18 +82,16 @@ async function saveSale(sale) {
     try {
         const response = await fetch(CONFIG.apiUrl, {
             method: 'POST',
-            mode: 'no-cors', // Apps Script issues with CORS in some environments
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'saveSale', sale })
         });
 
-        // Note: with no-cors we can't read the response body, but usually it succeeds
-        showNotification('Venda salva com sucesso!', 'success');
+        showNotification('Venda processada!', 'success');
         resetForm();
         showTab('dashboard');
-        setTimeout(refreshData, 1000); // Reload data after a short delay
+        setTimeout(refreshData, 1500);
     } catch (error) {
-        showNotification('Erro ao salvar: ' + error.message, 'error');
+        console.error(error);
+        showNotification('Erro ao salvar. Verifique o console.', 'error');
     }
 }
 
@@ -98,7 +99,6 @@ async function saveSale(sale) {
 function renderDashboard() {
     salesList.innerHTML = '';
 
-    // Stats
     const totalSales = salesData.length;
     const totalRevenue = salesData.reduce((acc, s) => acc + (parseFloat(s['Valor Total (R$)']) || 0), 0);
     const pendingSales = salesData.filter(s => s['Status do Pagamento'] === 'Em aberto').length;
@@ -107,23 +107,90 @@ function renderDashboard() {
     document.getElementById('total-revenue').textContent = `R$ ${totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
     document.getElementById('pending-sales').textContent = pendingSales;
 
-    // Table
-    salesData.forEach(sale => {
+    salesData.slice().reverse().forEach(sale => {
         const tr = document.createElement('tr');
-        const statusClass = `status-${sale['Status do Pagamento']?.toLowerCase().replace(' ', '-') || 'default'}`;
+        const status = sale['Status do Pagamento'] || 'Pendente';
+        const statusClass = `status-${status.toLowerCase().replace(/\s+/g, '-')}`;
 
         tr.innerHTML = `
-            <td>#${sale['ID da Venda'] || '---'}</td>
+            <td>#${sale['ID da Venda']?.toString().split('-').pop() || '---'}</td>
             <td><strong>${sale['Nome do Cliente'] || 'N/A'}</strong></td>
-            <td><span class="status ${statusClass}">${sale['Status do Pagamento'] || 'Pendente'}</span></td>
+            <td><span class="status ${statusClass}">${status}</span></td>
             <td>${formatDate(sale['Data da Compra'])}</td>
-            <td>R$ ${parseFloat(sale['Valor Total (R$)']).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+            <td>R$ ${parseFloat(sale['Valor Total (R$)'] || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
             <td>${sale['Responsável'] || '---'}</td>
             <td>
                 <button class="btn btn-sm btn-outline" onclick="editSale(${sale.rowIndex})">✏️</button>
             </td>
         `;
         salesList.appendChild(tr);
+    });
+}
+
+function renderCharts() {
+    Object.values(charts).forEach(chart => chart.destroy());
+
+    const ctxStatus = document.getElementById('status-chart').getContext('2d');
+    const ctxRevenue = document.getElementById('revenue-chart').getContext('2d');
+
+    const statusCounts = {};
+    salesData.forEach(s => {
+        const st = s['Status do Pagamento'] || 'Outros';
+        statusCounts[st] = (statusCounts[st] || 0) + 1;
+    });
+
+    charts.status = new Chart(ctxStatus, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(statusCounts),
+            datasets: [{
+                data: Object.values(statusCounts),
+                backgroundColor: ['#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#94a3b8'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#94a3b8', font: { family: 'Outfit' } } }
+            }
+        }
+    });
+
+    const revenueByMonth = {};
+    salesData.forEach(s => {
+        const date = new Date(s['Data da Compra']);
+        if (!isNaN(date)) {
+            const monthYear = date.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+            revenueByMonth[monthYear] = (revenueByMonth[monthYear] || 0) + (parseFloat(s['Valor Total (R$)']) || 0);
+        }
+    });
+
+    charts.revenue = new Chart(ctxRevenue, {
+        type: 'line',
+        data: {
+            labels: Object.keys(revenueByMonth),
+            datasets: [{
+                label: 'Faturamento R$',
+                data: Object.values(revenueByMonth),
+                borderColor: '#c1a173',
+                backgroundColor: 'rgba(193, 161, 115, 0.2)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
     });
 }
 
@@ -141,6 +208,8 @@ saleForm.addEventListener('submit', (e) => {
 
 function resetForm() {
     saleForm.reset();
+    const rowInput = saleForm.querySelector('[name="rowIndex"]');
+    if (rowInput) rowInput.remove();
 }
 
 // Settings
@@ -149,7 +218,7 @@ function saveSettings() {
     if (url) {
         localStorage.setItem('agrovale_api_url', url);
         CONFIG.apiUrl = url;
-        showNotification('URL da API salva!', 'success');
+        showNotification('Configuração salva!', 'success');
         refreshData();
     }
 }
@@ -167,6 +236,7 @@ function formatDate(dateStr) {
     if (!dateStr) return '---';
     try {
         const date = new Date(dateStr);
+        if (isNaN(date)) return dateStr;
         return date.toLocaleDateString('pt-BR');
     } catch {
         return dateStr;
@@ -178,25 +248,25 @@ function editSale(rowIndex) {
     if (!sale) return;
 
     showTab('new-sale');
-    // Map object properties to form inputs
+    resetForm();
+
     Object.keys(sale).forEach(key => {
         const input = saleForm.querySelector(`[name="${key}"]`);
         if (input) {
-            if (input.type === 'date') {
-                input.value = new Date(sale[key]).toISOString().split('T')[0];
+            if (input.type === 'date' && sale[key]) {
+                const d = new Date(sale[key]);
+                if (!isNaN(d)) {
+                    input.value = d.toISOString().split('T')[0];
+                }
             } else {
                 input.value = sale[key];
             }
         }
     });
 
-    // Store rowIndex in form for updates
-    let rowInput = saleForm.querySelector('[name="rowIndex"]');
-    if (!rowInput) {
-        rowInput = document.createElement('input');
-        rowInput.type = 'hidden';
-        rowInput.name = 'rowIndex';
-        saleForm.appendChild(rowInput);
-    }
+    let rowInput = document.createElement('input');
+    rowInput.type = 'hidden';
+    rowInput.name = 'rowIndex';
     rowInput.value = rowIndex;
+    saleForm.appendChild(rowInput);
 }
