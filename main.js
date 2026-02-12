@@ -270,3 +270,44 @@ function editSale(rowIndex) {
     rowInput.value = rowIndex;
     saleForm.appendChild(rowInput);
 }
+
+// Service Worker Registration
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('SW registrado', reg))
+            .catch(err => console.log('SW falhou', err));
+    });
+}
+
+// Install Prompt Logic
+let deferredPrompt;
+const installBanner = document.getElementById('install-banner');
+const btnInstall = document.getElementById('btn-install');
+const btnCloseBanner = document.getElementById('btn-close-banner');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    setTimeout(() => {
+        if (installBanner) installBanner.classList.add('show');
+    }, 2000);
+});
+
+if (btnInstall) {
+    btnInstall.addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response to the install prompt: ${outcome}`);
+            deferredPrompt = null;
+            installBanner.classList.remove('show');
+        }
+    });
+}
+
+if (btnCloseBanner) {
+    btnCloseBanner.addEventListener('click', () => {
+        installBanner.classList.remove('show');
+    });
+}

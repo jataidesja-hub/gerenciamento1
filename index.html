@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -220,6 +221,21 @@
 
     <!-- Notification Container -->
     <div id="notification" class="notification"></div>
+
+    <!-- Install Prompt -->
+    <div id="install-banner" class="install-banner">
+        <div class="banner-content">
+            <span class="banner-icon">📱</span>
+            <div class="banner-text">
+                <p>Instalar Aplicativo</p>
+                <small>Acesse mais rápido da sua tela inicial</small>
+            </div>
+        </div>
+        <div class="banner-actions">
+            <button id="btn-install" class="btn btn-sm btn-primary">Instalar</button>
+            <button id="btn-close-banner" class="btn btn-sm btn-outline">Agora não</button>
+        </div>
+    </div>
 
     <script src="main.js"></script>
 </body>
