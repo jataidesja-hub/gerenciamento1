@@ -18,10 +18,37 @@ const notification = document.getElementById('notification');
 // Initialization
 document.addEventListener('DOMContentLoaded', () => {
     initTabs();
+    initAutoCalc();
     if (CONFIG.apiUrl) {
         refreshData();
     }
 });
+
+// Auto-calculate installment value
+function initAutoCalc() {
+    const totalInput = document.getElementById('total-value');
+    const installmentsInput = document.getElementById('installments');
+    const installmentValueInput = document.getElementById('installment-value');
+
+    if (totalInput && installmentsInput && installmentValueInput) {
+        installmentValueInput.readOnly = true;
+        installmentValueInput.style.opacity = '0.7';
+        installmentValueInput.style.cursor = 'not-allowed';
+
+        function calcInstallmentValue() {
+            const total = parseFloat(totalInput.value) || 0;
+            const parcelas = parseInt(installmentsInput.value) || 1;
+            if (total > 0 && parcelas > 0) {
+                installmentValueInput.value = (total / parcelas).toFixed(2);
+            } else {
+                installmentValueInput.value = '';
+            }
+        }
+
+        totalInput.addEventListener('input', calcInstallmentValue);
+        installmentsInput.addEventListener('input', calcInstallmentValue);
+    }
+}
 
 // Tab Navigation
 function initTabs() {
