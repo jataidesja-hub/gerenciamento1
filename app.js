@@ -19,6 +19,7 @@ const notification = document.getElementById('notification');
 document.addEventListener('DOMContentLoaded', () => {
     initTabs();
     initAutoCalc();
+    initClientSuggestions();
     if (CONFIG.apiUrl) {
         refreshData();
     }
@@ -100,6 +101,7 @@ async function refreshData() {
         renderDashboard();
         renderCharts();
         renderClients();
+        updateClientsDatalist();
         showNotification('Dados atualizados!', 'success');
     } catch (error) {
         console.error(error);
@@ -553,5 +555,41 @@ if (btnInstall) {
 if (btnCloseBanner) {
     btnCloseBanner.addEventListener('click', () => {
         installBanner.classList.remove('show');
+    });
+}
+
+// Client Suggestions and Auto-fill
+function initClientSuggestions() {
+    const nameInput = document.getElementById('client-name');
+    const cityInput = document.getElementById('client-city');
+    const phoneInput = document.getElementById('client-phone');
+
+    if (nameInput && cityInput && phoneInput) {
+        nameInput.addEventListener('input', () => {
+            const selectedName = nameInput.value.trim();
+            const clientGroups = getClientGroups();
+
+            if (clientGroups[selectedName]) {
+                const client = clientGroups[selectedName];
+                cityInput.value = client.city || '';
+                phoneInput.value = client.phone || '';
+                showNotification(`Dados de ${selectedName} preenchidos!`, 'info');
+            }
+        });
+    }
+}
+
+function updateClientsDatalist() {
+    const datalist = document.getElementById('clients-datalist');
+    if (!datalist) return;
+
+    const groups = getClientGroups();
+    const names = Object.keys(groups).sort();
+
+    datalist.innerHTML = '';
+    names.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        datalist.appendChild(option);
     });
 }
