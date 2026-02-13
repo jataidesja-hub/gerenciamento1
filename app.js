@@ -402,10 +402,10 @@ function renderClientSales(client) {
                 html += `
                     <div class="installment-item ${instClass}">
                         <div>
-                            <span class="installment-label">${isPaid ? '✅' : '⏳'} ${inst['Nº Parcela']}ª</span>
+                            <span class="installment-label">${isPaid ? '✅' : '⏳'} ${inst['Nº Parcela']}ª — Venc. ${formatDate(inst['Vencimento'])}</span>
                             <div class="installment-value">R$ ${instValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
                         </div>
-                        ${!isPaid ? `<button class="installment-action" onclick="markInstallmentPaid('${saleId}', ${inst['Nº Parcela']})" title="Marcar como paga">💰</button>` : `<span style="color: var(--success); font-size: 0.8rem;">${formatDate(inst['Data Pagamento'])}</span>`}
+                        ${!isPaid ? `<button class="installment-action" onclick="markInstallmentPaid('${saleId}', ${inst['Nº Parcela']})" title="Marcar como paga">💰</button>` : `<span style="color: var(--success); font-size: 0.8rem;">Pago em: ${formatDate(inst['Data Pagamento'])}</span>`}
                     </div>`;
             });
 
